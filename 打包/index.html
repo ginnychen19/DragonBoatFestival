@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:url" content="gotoo.co" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="跳跳祝大家端午節快樂！" />
+    <meta property="og:description" content="
+    今天是端午節喔！跳跳今年榮幸邀請到屈原，快來聽聽屈原給你的留言吧🎉🚣‍♂️  
+    希望大家可以在這個節日裡，跟親朋好友相聚，一起慶祝🎊" />
+    <meta property="og:image" content="https://gotoo.co/demo/elizabeth/04_DragonBoatFestival/assest/img/Pre_bg.png">
+    <title>端午節快樂！</title>
+    <link href="./css/index.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <script src="https://code.jquery.com/jquery-3.6.4.js"
+        integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E=" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div id="game">
+        <div class="talkUI">
+            <h4 id="talk" class="animate__animated hidden"></h4>
+        </div>
+        <img class="bg" src="./DragonBoatFestival_ani.svg">
+    </div>
+
+    <script>
+        const talk = $("#talk");
+        var blessings = [
+            "你掉的是金粽子還是銀粽子阿",
+            "恭喜你已被財神關注 <br> 去買樂透吧",
+            "北部粽和南部粽我都愛 <br> 甜粽冰粽也不賴",
+            "記得掛艾草阿~ <br> 這個季節蚊蟲多",
+            "在小小的湖裡面呀滑呀滑呀滑~ <br> 搭龍舟嗎?"
+        ];
+
+        function generateRandomBlessing() {
+            var randomIndex = Math.floor(Math.random() * blessings.length);
+            setTimeout(() => {
+                let counter02 = 0;
+                let interval02 = setInterval(function () {
+                    counter02 += 1;
+                    if (counter02 <= blessings[randomIndex].length) {
+                        var myWord = "";
+                        for (let i = 0; i < counter02; i++) {
+                            myWord += blessings[randomIndex][i];
+                            if (i > counter02) { i = 0 }
+                        }
+                        talk.html(myWord);
+                    } else {
+                        clearInterval(interval02);
+                    }
+                }, 150)
+            }, 4000);
+        }
+
+        $(document).ready(function () {
+            var counter = 0;
+            generateRandomBlessing();
+            var interval = setInterval(function () {
+                counter += 1;
+                if (counter === 4) {
+                    talk.removeClass("hidden");
+                    talk.removeClass("animate__rotateOutUpRight")
+                    talk.addClass("animate__rotateInDownRight");
+                }
+                if (counter === 10) {
+                    talk.addClass("hidden");
+                    counter = 0;
+                }
+
+            }, 1000);
+        });
+    </script>
+</body>
