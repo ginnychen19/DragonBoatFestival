@@ -1,0 +1,66 @@
+lulu~不好意思我想問一下
+
+因為我目前再用的龍舟遊戲可能會遇到方形和圓形的碰撞
+所以我在嘗試研究旋轉矩陣和圓形的碰撞檢測~
+
+我是有找到原碼，但看了一下覺得理解起來有些複雜
+https://codepen.io/JChehe/pen/aWqpdo/
+所以想問看看妳，有用過什麼碰撞套件嗎 ><
+
+【端午小遊戲】
+因時間考量會用2D開發 
+
+龍舟雙人小遊戲 - 遊戲方式 
+可兩人或一人遊玩，用A(左)、ArrowRight(右)
+(按了就會持續往那邊)
+1.可能翻船 撞牆或狀障礙物
+2.每20秒可以搶一次旗子
+3.移動速度會越來越快
+4.但1分鐘內會到達終點
+
+遊戲畫面
+結算畫面
+美術素材
+
+main.js
+01. init 
+會包含一個class一切的初始化，包含一個 update 和 draw
+     01.update
+             a. 時間計數器 =>用deltaTime的時間去累加在轉換格式
+             b. 遊戲是否結束判斷 if (this.time > this.maxTime) this.gameOver = true;
+             c. 遊戲背景、船隻資訊的更新
+                    this.background.update();
+                    this.player.update(this.input.keys, deltaTime);
+             d. 生成障礙物
+      02.draw 就是處理他們的draw行為
+            this.background.draw(context);
+            this.player.draw(context);
+            this.enemies.forEach(enemy => {
+                enemy.draw(context);
+            })
+            this.UI.draw(context)
+
+02. animate
+        因為要遵循update-collide-render週期，所以
+            //要加clearRect，要不然會有無限殘影。
+               ctx.clearRect(0, 0, canvas.width, canvas.height);         
+               game.update(deltaTime);
+               game.draw(ctx); //會把ctx傳進各個js裡
+            //不是this.gameOver喔！
+               if (!game.gameOver) requestAnimationFrame(animate);
+
+船隻狀態判斷 player、playerStates、input
+(拆成兩邊、改變播放速度之類的)
+左滑、右滑、平時、翻船
+InputHandler => this.keys = [];收目前有接到什麼樣的按鍵
+player.js =>
+        update(input, deltaTime) 會處理包括
+            碰撞判定 this.checkCollision(); 也會處理撞到後的問題
+            執行檢查當前狀態還有其他 this.currentState.handleInput(input);
+            船隻的x和y位移的變化
+            //畫精靈圖
+        draw(context) 會處理包括
+
+圖片旋轉位置會用到
+使用canvas把照片旋转任意角度 https://juejin.cn/post/7091104407269408776
+

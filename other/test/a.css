@@ -1,0 +1,17 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+
+canvas {
+	border: 1px solid orange;
+	margin: 10vh auto 0;
+	display: block;
+}
+.btn_group {
+  text-align: center;
+}
+button {
+  width: 60px;
+  height: 30px;
+}

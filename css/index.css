@@ -1,0 +1,124 @@
+:root {
+    --color01: #F7F8F8;
+    --color02: #9FA0A0;
+    --color03: #525152;
+    --Green: #005253;
+    --YWhite: #E6E1CC;
+    --River: #bffff5;
+    --GreenRiver: #63AEA8;
+    --DGreenRiver: #266f72;
+
+    --Green02: #628e59;
+    --Green03: #A3CF78;
+    --Green04: #87c379;
+
+    --BG_LYellow: #f0da99;
+    --BG_LOrange: #F3D1B2;
+    --BG_MOrange: #f7bc88;
+
+    --Brown01: #5c3a31;
+    --Brown02: #835B36;
+    --Brown03: #BB8058;
+
+    --Brown04_BE: #b79779;
+    --Brown05_BEtxt: #876464;
+
+
+    --BTN_Red: #e3344b;
+    --BTN_Green: #337e47;
+    --BTN_Yellow: #f39800;
+    --BTN_Blue: #0061f3;
+
+    --pLabel: 80px;
+    --pBTitle: 58px;
+    --pMTitle: 40px;
+    --pSTitle: 28px;
+    --pContent: 18px;
+    --pSContent: 14px;
+
+    --gameUIwidth: 900;
+    --gameUIheight: 500;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+    margin: 0;
+    font-weight: 600;
+    text-align: justify;
+}
+
+body {
+    margin: 0;
+    background-color: var(--Green);
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-family: "Helvetica", "Arial", "LiHei Pro", "微軟正黑體", sans-serif;
+    overflow: hidden;
+}
+
+
+/* * {
+    border: 1px solid teal;
+} */
+
+#game {
+    position: relative;
+    height: 100vh;
+    width: 51.2vh;
+    background-color: #0061f3;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.bg {
+    width: 51.2vh;
+    height: 100vh;
+}
+
+.talkUI {
+    /* (320-200)/2 /2 */
+    width: 51.2vh;
+    height: 100vh;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+
+
+    display: flex;
+    flex-direction: column;
+    padding: 20vh 0 0 0;
+
+    align-items: center;
+}
+
+#talk {
+    /*文字*/
+    width: fit-content;
+    max-width: 40vh;
+    text-align: center;
+    padding: 20px;
+    font-size: 3vh;
+
+    border-radius: 20px;
+    background-color: var(--Green);
+    color: var(--color01);
+    box-shadow: inset -2px 2px 2px 1px rgba(255, 255, 255, 0.2),
+        inset 2px -2px 2px 1px rgba(0, 0, 0, 0.2),
+        0px 0px 20px 10px rgba(255, 255, 255, 0.5);
+}
+
+.hidden {
+    display: none !important;
+}
