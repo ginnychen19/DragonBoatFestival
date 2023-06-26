@@ -27,13 +27,13 @@ window.addEventListener('load', function () {
         constructor(width, height) {
             this.width = width;
             this.height = height;
-            this.speed = 0; 
+            this.speed = 0;
 
             this.background = new Background(this)
             this.player = new Player(this);
             this.input = new InputHandler(this);
 
-            this.obstacles = []; 
+            this.obstacles = [];
             this.obstacleTimer = 0;
             this.obstacleInterval = 1000;
 
@@ -41,7 +41,7 @@ window.addEventListener('load', function () {
             this.debugCount = 0;
             this.score = 0;
             this.time = 0;
-            this.maxTime = 60; 
+            this.maxTime = 60;
 
             this.gameOver = false;
             this.gamePause = false;
@@ -51,7 +51,7 @@ window.addEventListener('load', function () {
         }
 
         update(deltaTime) {
-            if (!game.gamePause) { 
+            if (!game.gamePause) {
                 // var senced = deltaTime / 1000; //不知為何這樣算會有bug
                 this.time += 0.006;
                 progressBar.attr('value', Math.floor(this.time))
@@ -84,7 +84,14 @@ window.addEventListener('load', function () {
             this.player.draw(context);
         }
         addObstacle() {
-            this.obstacles.push(new Rock(this));
+            if (window.innerWidth > 480) {
+                if (Math.floor(this.time) % 2 === 0) {
+                    this.obstacles.push(new Rock(this));
+                }
+            } else {
+                this.obstacles.push(new Rock(this), new Rock(this), new Rock(this));
+            }
+
             if (Math.floor(this.time) % 5 === 0) {
                 this.obstacles.push(new Flag(this));
             }
@@ -99,7 +106,6 @@ window.addEventListener('load', function () {
     $(btnPauseGame).on('click', function () {
         game.btnPauseGameCount++;
         if (game.btnPauseGameCount % 2 != 0) {
-            console.log()
             btnPauseGame.css('background-image', "url('https://gotoo.co/demo/elizabeth/04_DragonBoatFestival/assest/img/btn-R.svg')")
             game.gamePause = true;
         } else {
@@ -132,7 +138,7 @@ window.addEventListener('load', function () {
     }
 
     $(btnRestartGame).on('click', function () {
-        location.reload(); 
+        location.reload();
     })
 });
 

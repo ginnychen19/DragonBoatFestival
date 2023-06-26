@@ -108,10 +108,13 @@ body {
     border: 2px solid transparent;
     background-color: var(--Brown01);
 }
-
+.button:active{
+    transform: scale(0.8);
+}
 .type1:hover::after {
     visibility: visible;
     transform: scale(100) translateX(2px);
+    background-color: var(--Brown01);
 }
 
 #game {

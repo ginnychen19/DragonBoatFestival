@@ -3,7 +3,7 @@ import { InputHandler } from './input.js';
 import { Background } from './background.js';
 import { Rock, Flag } from './obstacle.js';
 // import { UI } from './UI.js';
-// import { BgMusic, UiSound, playerSound, EnemySound } from './music.js';
+// import { BgMusic, UiSound, playerSound } from './music.js';
 
 const canvas = document.getElementById("CanvasGame");
 const gameUI = $(".gameUI");
@@ -15,10 +15,13 @@ let progressBar = $('#ProgressBar');
 let score = $('span.score');
 let evaluate = $('#evaluate');
 
-
 let btnStartGame = $(".button.start");
 let btnRestartGame = $(".button.reStart");
 let btnPauseGame = $(".btn.PauseGame");
+let btnMusic = $("button.music");
+
+let music_chinese01 = $("#music_chinese01");
+let music_chinese02 = $("#music_chinese02");
 
 window.addEventListener('load', function () {
     canvas.width = 320;
@@ -50,6 +53,9 @@ window.addEventListener('load', function () {
             this.btnPauseGameCount = 0;
             this.gameBGmusic = false;
 
+            this.openMusic = false;
+            this.btnMusicCount = 1;
+
             // this.player.currentState = this.player.states[0];
             // this.player.currentState.enter();
 
@@ -70,6 +76,7 @@ window.addEventListener('load', function () {
                 this.background.update();
                 this.player.update(this.input.keys, deltaTime);
 
+                // console.log(this.openMusic);
                 // 生成敵人
                 if (this.obstacleTimer > this.obstacleInterval) {
                     this.addObstacle();
@@ -94,14 +101,13 @@ window.addEventListener('load', function () {
             this.player.draw(context);
         }
         addObstacle() {
-            this.obstacles.push(new Rock(this));
-            // if (window.innerWidth < 480) {
-            //     if (Math.floor(this.time) % 2 === 0) {//每5秒有一個旗子
-            //         this.obstacles.push(new Rock(this));
-            //     }
-            // } else {
-            //     this.obstacles.push(new Rock(this));
-            // }
+            if (window.innerWidth > 480) {
+                if (Math.floor(this.time) % 2 === 0) {
+                    this.obstacles.push(new Rock(this));
+                }
+            } else {
+                this.obstacles.push(new Rock(this));
+            }
 
             if (Math.floor(this.time) % 5 === 0) {//每5秒有一個旗子
                 this.obstacles.push(new Flag(this));
@@ -109,12 +115,31 @@ window.addEventListener('load', function () {
         }
     }
     const game = new Game(canvas.width, canvas.height);
+    // if (game.openMusic) music_chinese01.Play();
     /* 按下開始遊戲 */
     $(btnStartGame).on('click', function () {
+        // if (game.openMusic)
+        // game.openMusic = true;
+        // console.log(music_chinese02[0]);
+        // if(game.openMusic) music_chinese02[0].Play();
         uiStart.addClass("hidden");
         uiPlay.removeClass("hidden");
         animate(0);
     });
+    /* 音樂監聽 */
+    $(btnMusic).on('click', function () {
+        game.btnMusicCount++;
+        if (game.btnMusicCount % 2 != 0) {
+            game.gamePause = false;
+            $("#music_chinese01").get(0).pause();
+            // $("#music_chinese01").attr("autoplay", "true");
+        } else {
+            game.openMusic = true;
+            $("#music_chinese01").get(0).play();
+            // $("#music_chinese01").attr("autoplay", "false");
+        }
+    });
+
     /* 按下暫停 */
     $(btnPauseGame).on('click', function () {
         game.btnPauseGameCount++;

@@ -6,7 +6,14 @@ class obstacle {
         this.markedForDeletion = false;
         this.speedY = 2; //流速
     }
-    update(deltaTime) {
+    update(deltaTime, nowTime) {
+        //加速用
+        nowTime = Math.floor(nowTime);
+        if (nowTime > 20) {
+            this.speedY = 3;
+        } else if (nowTime > 40) {
+            this.speedY = 6;
+        }
         //移動時
         this.y += this.speedY;
         //確認是否移出是窗外，移出擦除。
@@ -55,7 +62,7 @@ export class Rock extends obstacle {
         this.image = document.getElementById("rock01");
     }
     update(deltaTime) {
-        super.update(deltaTime); //super是再取用上面的funtion
+        super.update(deltaTime, this.game.time);//super是再取用上面的funtion
     }
 }
 export class Flag extends obstacle {
@@ -74,7 +81,7 @@ export class Flag extends obstacle {
     }
 
     update(deltaTime) {
-        super.update(deltaTime);
+        super.update(deltaTime, this.game.time);
         this.checkCollisionWithPreviousRock();
     }
 

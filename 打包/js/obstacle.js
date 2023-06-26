@@ -6,10 +6,15 @@ class obstacle {
         this.markedForDeletion = false;
         this.speedY = 2;
     }
-    update(deltaTime) {
+    update(deltaTime, nowTime) {
+        nowTime = Math.floor(nowTime);
+        if (nowTime > 20) {
+            this.speedY = 3;
+        } else if (nowTime > 40) {
+            this.speedY = 6;
+        }
         this.y += this.speedY;
         if (this.y + this.height > 625 + this.height) this.markedForDeletion = true;
-
     }
     draw(context) {
         context.save();//這個很重要喔
@@ -40,14 +45,14 @@ export class Rock extends obstacle {
     constructor(game) {
         super();
         this.game = game;
-        this.width = Math.random() * 20 + 60; 
+        this.width = Math.random() * 20 + 60;
         this.height = this.width;
         this.x = Math.random() * (this.game.width - this.width);
         this.y = -(Math.random() * 40 + this.height);
         this.image = document.getElementById("rock01");
     }
     update(deltaTime) {
-        super.update(deltaTime); 
+        super.update(deltaTime, this.game.time);
     }
 }
 export class Flag extends obstacle {
@@ -66,7 +71,7 @@ export class Flag extends obstacle {
     }
 
     update(deltaTime) {
-        super.update(deltaTime);
+        super.update(deltaTime, this.game.time);
         this.checkCollisionWithPreviousRock();
     }
 

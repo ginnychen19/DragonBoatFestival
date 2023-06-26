@@ -12,6 +12,7 @@ export class Player {
         this.y = (this.height - this.boatHeight) - 60;
         this.rotate = 0
         this.rotationSpeed = 1;
+        this.maxRotate = 30;
         this.image = document.getElementById("PlayerBoat");
 
         this.fps = 15;
@@ -27,7 +28,11 @@ export class Player {
     update(input, deltaTime) {
         this.checkCollision();
         this.x += this.speed;
-
+        if (window.innerWidth < 480) { //手機的不同設定
+            this.maxSpeed = 2;
+            this.rotationSpeed = 2;
+            this.maxRotate = 45;
+        }
         if (this.rotate != 0) {
             if (this.rotate < 0) {
                 this.rotate = this.rotate + this.rotationSpeed / 2;
@@ -37,12 +42,11 @@ export class Player {
         }
         if (input.includes('arrowright')) {
             this.speed = this.maxSpeed;
-            if (this.rotate < 30) this.rotate += this.rotationSpeed;
+            if (this.rotate < this.maxRotate) this.rotate += this.rotationSpeed;
         }
         else if (input.includes('a')) {
             this.speed = -this.maxSpeed;
-            if (this.rotate > -30) this.rotate -= this.rotationSpeed;
-
+            if (this.rotate > -this.maxRotate) this.rotate -= this.rotationSpeed;
         } else { this.speed = 0; }
 
         if (this.x < 0) this.x = 0;

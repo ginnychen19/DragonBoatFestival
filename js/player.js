@@ -14,6 +14,7 @@ export class Player {
         this.y = (this.height - this.boatHeight) - 60; //從底下高60
         this.rotate = 0
         this.rotationSpeed = 1;
+        this.maxRotate = 30;
         this.image = document.getElementById("PlayerBoat");
 
         this.frameX = 0; //這邊是用來畫精靈圖。
@@ -45,7 +46,11 @@ export class Player {
         this.checkCollision();
         // this.currentState.handleInput(input);//在每次更新前先檢查狀態
         this.x += this.speed;
-
+        if (window.innerWidth < 480) {
+            this.maxSpeed = 2;
+            this.rotationSpeed = 2;
+            this.maxRotate = 45;
+        }
         if (this.rotate != 0) {
             if (this.rotate < 0) {
                 this.rotate = this.rotate + this.rotationSpeed / 2;
@@ -55,11 +60,11 @@ export class Player {
         }
         if (input.includes('arrowright')) {
             this.speed = this.maxSpeed; // 向右旋转
-            if(this.rotate< 30 ) this.rotate += this.rotationSpeed;//最多轉幾度
+            if(this.rotate< this.maxRotate ) this.rotate += this.rotationSpeed;//最多轉幾度
         }
         else if (input.includes('a')) {
             this.speed = -this.maxSpeed;
-            if(this.rotate > -30) this.rotate -= this.rotationSpeed; // 向左旋转
+            if(this.rotate > -this.maxRotate) this.rotate -= this.rotationSpeed; // 向左旋转
 
         } else { this.speed = 0; }
         /* 牆壁判斷 */
