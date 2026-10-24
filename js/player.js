@@ -1,6 +1,5 @@
 // import { Sitting, Running, Jumping, Falling, Death } from './playerStates.js';
 import { Rock, Flag } from './obstacle.js';
-// import { playerSound, EnemySound } from './music.js';
 const canvas = document.getElementById("CanvasGame");
 /* 手感參數，單位皆為「每秒」，不受螢幕更新率影響。數值以舊版在 60fps 的表現為基準換算 */
 const TUNING = {
@@ -152,8 +151,10 @@ export class Player {
             if (obstacle instanceof Flag) {
                 obstacle.markedForDeletion = true;
                 this.game.score++;
+                this.game.sound.play('collect');
             } else if (obstacle instanceof Rock) {
                 this.game.gameOver = true;
+                this.game.sound.play('fail');
                 $('body').addClass('shake');
             }
         });
