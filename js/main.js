@@ -2,8 +2,7 @@ import { Player } from './player.js';
 import { InputHandler } from './input.js';
 import { Background } from './background.js';
 import { Rock, Flag } from './obstacle.js';
-// import { UI } from './UI.js';
-// import { BgMusic, UiSound, playerSound } from './music.js';
+import { Sound } from './sound.js';
 
 const canvas = document.getElementById("CanvasGame");
 const gameUI = $(".gameUI");
@@ -19,9 +18,7 @@ let btnStartGame = $(".button.start");
 let btnRestartGame = $(".button.reStart");
 let btnPauseGame = $(".btn.PauseGame");
 let btnMusic = $("button.music");
-
-let music_chinese01 = $("#music_chinese01");
-let music_chinese02 = $("#music_chinese02");
+let musicToggle = $("#checkboxInput"); //遊戲中的喇叭開關，勾起來是靜音
 
 window.addEventListener('load', function () {
     canvas.width = 320;
@@ -52,14 +49,8 @@ window.addEventListener('load', function () {
             this.gameOver = false;
             this.gamePause = false;
             this.btnPauseGameCount = 0;
-            this.gameBGmusic = false;
 
-            this.openMusic = false;
-            this.btnMusicCount = 1;
-
-            // this.player.currentState = this.player.states[0];
-            // this.player.currentState.enter();
-
+            this.sound = new Sound();
         }
 
         update(deltaTime) {
@@ -71,7 +62,10 @@ window.addEventListener('load', function () {
                 //分數
                 score.html(this.score);
                 //遊戲是否結束判斷
-                if (this.time >= this.maxTime) this.gameOver = true;
+                if (this.time >= this.maxTime) {
+                    this.gameOver = true;
+                    this.sound.play('win');
+                }
                 //遊戲背景
                 this.background.update();
                 this.player.update(this.input.keys, deltaTime);
@@ -110,29 +104,19 @@ window.addEventListener('load', function () {
         }
     }
     const game = new Game(canvas.width, canvas.height);
-    // if (game.openMusic) music_chinese01.Play();
+    /* 音效開關：開始畫面的按鈕與遊戲中的喇叭共用同一個狀態，任一處切換另一處跟著變 */
+    game.sound.onChange(on => {
+        btnMusic.find('.btn-txt').text(on ? '音樂：開' : '音樂：關');
+        musicToggle.prop('checked', !on);
+    });
+    btnMusic.on('click', () => game.sound.toggle());
+    musicToggle.on('change', function () { game.sound.setEnabled(!this.checked); });
     /* 按下開始遊戲 */
-    $(btnStartGame).on('click', function () {
-        // if (game.openMusic)
-        // game.openMusic = true;
-        // console.log(music_chinese02[0]);
-        // if(game.openMusic) music_chinese02[0].Play();
+    btnStartGame.on('click', function () {
+        game.sound.playBgm(); //點擊屬於使用者互動，瀏覽器允許在這裡開始播放
         uiStart.addClass("hidden");
         uiPlay.removeClass("hidden");
         requestAnimationFrame(animate);
-    });
-    /* 音樂監聽 */
-    $(btnMusic).on('click', function () {
-        game.btnMusicCount++;
-        if (game.btnMusicCount % 2 != 0) {
-            game.gamePause = false;
-            $("#music_chinese01").get(0).pause();
-            // $("#music_chinese01").attr("autoplay", "true");
-        } else {
-            game.openMusic = true;
-            $("#music_chinese01").get(0).play();
-            // $("#music_chinese01").attr("autoplay", "false");
-        }
     });
 
     /* 按下暫停 */
