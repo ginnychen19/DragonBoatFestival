@@ -145,10 +145,10 @@ window.addEventListener('load', function () {
         game.btnPauseGameCount++;
         if (game.btnPauseGameCount % 2 != 0) {
             console.log()
-            btnPauseGame.css('background-image', "url('https://gotoo.co/demo/elizabeth/04_DragonBoatFestival/assest/img/btn-R.svg')")
+            btnPauseGame.css('background-image', "url('./assets/img/btn-R.svg')")
             game.gamePause = true;
         } else {
-            btnPauseGame.css('background-image', "url('https://gotoo.co/demo/elizabeth/04_DragonBoatFestival/assest/img/btn-Stop.svg')")
+            btnPauseGame.css('background-image', "url('./assets/img/btn-Stop.svg')")
             game.gamePause = false;
         }
     });

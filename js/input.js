@@ -30,10 +30,10 @@ export class InputHandler {
             this.game.btnPauseGameCount++;
             if (this.game.btnPauseGameCount % 2 != 0) {
                 this.game.gamePause = true;
-                this.btnStop.css('background-image', "url('https://gotoo.co/demo/elizabeth/04_DragonBoatFestival/assest/img/btn-R.svg')")
+                this.btnStop.css('background-image', "url('./assets/img/btn-R.svg')")
             } else {
                 this.game.gamePause = false;
-                this.btnStop.css('background-image', "url('https://gotoo.co/demo/elizabeth/04_DragonBoatFestival/assest/img/btn-Stop.svg')")
+                this.btnStop.css('background-image', "url('./assets/img/btn-Stop.svg')")
             }
         } else if (e.key.toLowerCase() === "q") {
             this.game.debugCount++;
