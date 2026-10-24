@@ -1,21 +1,26 @@
+/* 流速分檔：遊戲進行到第 from 秒以後用 speed（px/s）。由高到低排列，取第一個符合的 */
+const SPEED_TIERS = [
+    { from: 40, speed: 360 },
+    { from: 20, speed: 180 },
+    { from: 0, speed: 120 },
+];
+function speedFor(time) {
+    return SPEED_TIERS.find(t => time >= t.from).speed;
+}
+
 class obstacle {
     constructor() {
         this.fps = 20;
         this.frameInterval = 1000 / this.fps;
         this.frameTimer = 0;
         this.markedForDeletion = false;
-        this.speedY = 2; //流速
+        this.speedY = speedFor(0); //流速（px/s）
     }
     update(deltaTime, nowTime) {
-        //加速用
-        nowTime = Math.floor(nowTime);
-        if (nowTime > 20) {
-            this.speedY = 3;
-        } else if (nowTime > 40) {
-            this.speedY = 6;
-        }
+        //依遊戲進行秒數分檔加速
+        this.speedY = speedFor(nowTime);
         //移動時
-        this.y += this.speedY;
+        this.y += this.speedY * deltaTime / 1000;
         //確認是否移出是窗外，移出擦除。
         if (this.y + this.height > 625 + this.height) this.markedForDeletion = true;
 

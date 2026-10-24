@@ -2,6 +2,11 @@
 import { Rock, Flag } from './obstacle.js';
 // import { playerSound, EnemySound } from './music.js';
 const canvas = document.getElementById("CanvasGame");
+/* 手感參數，單位皆為「每秒」，不受螢幕更新率影響。數值以舊版在 60fps 的表現為基準換算 */
+const TUNING = {
+    desktop: { maxSpeed: 60, rotationSpeed: 60, maxRotate: 30 },
+    mobile: { maxSpeed: 120, rotationSpeed: 120, maxRotate: 45 },
+};
 //這邊的this = Player這個class ，也就是操控角色。
 export class Player {
     constructor(game) {
@@ -12,9 +17,8 @@ export class Player {
         this.boatHeight = 50;
         this.x = (this.width - this.boatWidth) / 2;
         this.y = (this.height - this.boatHeight) - 60; //從底下高60
-        this.rotate = 0
-        this.rotationSpeed = 1;
-        this.maxRotate = 30;
+        this.rotate = 0; //目前船身角度（度）
+        this.applyTuning();
         this.image = document.getElementById("PlayerBoat");
 
         this.frameX = 0; //這邊是用來畫精靈圖。
@@ -25,8 +29,7 @@ export class Player {
         this.frameInterval = 1000 / this.fps;
         this.frameTimer = 0; //以上三個用來計數動畫
 
-        this.speed = 0;
-        this.maxSpeed = 1;//控制移動速度
+        this.speed = 0; //目前水平速度（px/s）
         // this.states = [//這邊會放playerStates.js的各種狀態。
         //     new Sitting(this),
         //     new Running(this),
@@ -42,30 +45,28 @@ export class Player {
     this.btnLeft = $('button.left');
         this.btnRight = $('button.right');
     }
+    applyTuning() {
+        const t = window.innerWidth < 480 ? TUNING.mobile : TUNING.desktop;
+        this.maxSpeed = t.maxSpeed;           // px/s
+        this.rotationSpeed = t.rotationSpeed; // 度/s
+        this.maxRotate = t.maxRotate;         // 度
+    }
     update(input, deltaTime) {
+        const dt = deltaTime / 1000; //秒
         this.checkCollision();
-        // this.currentState.handleInput(input);//在每次更新前先檢查狀態
-        this.x += this.speed;
-        if (window.innerWidth < 480) {
-            this.maxSpeed = 2;
-            this.rotationSpeed = 2;
-            this.maxRotate = 45;
-        }
-        if (this.rotate != 0) {
-            if (this.rotate < 0) {
-                this.rotate = this.rotate + this.rotationSpeed / 2;
-            } else if (this.rotate > 0) {
-                this.rotate = this.rotate - this.rotationSpeed / 2;
-            }
+        this.applyTuning();
+        this.x += this.speed * dt;
+        /* 沒按鍵時船身慢慢回正，回正速度是轉向速度的一半 */
+        if (this.rotate !== 0) {
+            const settle = Math.min(Math.abs(this.rotate), this.rotationSpeed / 2 * dt);
+            this.rotate -= Math.sign(this.rotate) * settle;
         }
         if (input.includes('arrowright')) {
-            this.speed = this.maxSpeed; // 向右旋转
-            if(this.rotate< this.maxRotate ) this.rotate += this.rotationSpeed;//最多轉幾度
-        }
-        else if (input.includes('a')) {
+            this.speed = this.maxSpeed;
+            this.rotate = Math.min(this.rotate + this.rotationSpeed * dt, this.maxRotate);
+        } else if (input.includes('a')) {
             this.speed = -this.maxSpeed;
-            if(this.rotate > -this.maxRotate) this.rotate -= this.rotationSpeed; // 向左旋转
-
+            this.rotate = Math.max(this.rotate - this.rotationSpeed * dt, -this.maxRotate);
         } else { this.speed = 0; }
         /* 牆壁判斷 */
         if (this.x < 0) this.x = 0;

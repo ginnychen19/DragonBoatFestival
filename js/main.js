@@ -38,9 +38,10 @@ window.addEventListener('load', function () {
             this.player = new Player(this);
             this.input = new InputHandler(this);
 
-            this.obstacles = []; //障礙物生成
-            this.obstacleTimer = 0;
-            this.obstacleInterval = 1000;
+            this.obstacles = []; //場上的礁石與旗子
+            this.rockTimer = 0; //毫秒
+            this.flagTimer = 0;
+            this.flagInterval = 5000; //每 5 秒一面旗子
 
             this.debug = false;
             this.debugCount = 0;
@@ -75,18 +76,10 @@ window.addEventListener('load', function () {
                 this.background.update();
                 this.player.update(this.input.keys, deltaTime);
 
-                // console.log(this.openMusic);
-                // 生成敵人
-                if (this.obstacleTimer > this.obstacleInterval) {
-                    this.addObstacle();
-                    this.obstacleTimer = 0;
-                } else {
-                    this.obstacleTimer += deltaTime;
-                }
-                this.obstacles.forEach(obstacle => {
-                    obstacle.update(deltaTime);
-                    if (obstacle.markedForDeletion) this.obstacles.splice(this.obstacles.indexOf(obstacle), 1);//刪除當前這個障礙物
-                })
+                // 生成障礙物
+                this.spawnObstacles(deltaTime);
+                this.obstacles.forEach(obstacle => obstacle.update(deltaTime));
+                this.obstacles = this.obstacles.filter(obstacle => !obstacle.markedForDeletion); //移出畫面或被撿走的清掉
             } else {
                 return;
             }
@@ -99,17 +92,20 @@ window.addEventListener('load', function () {
             })
             this.player.draw(context);
         }
-        addObstacle() {
-            if (window.innerWidth > 480) {
-                if (Math.floor(this.time) % 2 === 0) {
-                    this.obstacles.push(new Rock(this));
-                }
-            } else {
+        rockInterval() {
+            //桌機畫面大、船慢，礁石疏一點；手機密一點。單位毫秒
+            return window.innerWidth > 480 ? 2000 : 1000;
+        }
+        spawnObstacles(deltaTime) {
+            this.rockTimer += deltaTime;
+            this.flagTimer += deltaTime;
+            if (this.rockTimer >= this.rockInterval()) {
                 this.obstacles.push(new Rock(this));
+                this.rockTimer = 0;
             }
-
-            if (Math.floor(this.time) % 5 === 0) {//每5秒有一個旗子
+            if (this.flagTimer >= this.flagInterval) {
                 this.obstacles.push(new Flag(this));
+                this.flagTimer = 0;
             }
         }
     }
