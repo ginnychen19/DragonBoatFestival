@@ -1,7 +1,7 @@
 import { Player } from './player.js';
 import { InputHandler } from './input.js';
 import { Background } from './background.js';
-import { Rock, Flag } from './obstacle.js';
+import { Spawner } from './spawner.js';
 import { Sound } from './sound.js';
 
 const canvas = document.getElementById("CanvasGame");
@@ -36,9 +36,7 @@ window.addEventListener('load', function () {
             this.input = new InputHandler(this);
 
             this.obstacles = []; //場上的礁石與旗子
-            this.rockTimer = 0; //毫秒
-            this.flagTimer = 0;
-            this.flagInterval = 5000; //每 5 秒一面旗子
+            this.spawner = new Spawner(this); //一列一列生成礁石與旗子
 
             this.debug = false;
             this.debugCount = 0;
@@ -71,7 +69,7 @@ window.addEventListener('load', function () {
                 this.player.update(this.input.keys, deltaTime);
 
                 // 生成障礙物
-                this.spawnObstacles(deltaTime);
+                this.spawner.update(deltaTime);
                 this.obstacles.forEach(obstacle => obstacle.update(deltaTime));
                 this.obstacles = this.obstacles.filter(obstacle => !obstacle.markedForDeletion); //移出畫面或被撿走的清掉
             } else {
@@ -85,22 +83,6 @@ window.addEventListener('load', function () {
                 obstacle.draw(context);
             })
             this.player.draw(context);
-        }
-        rockInterval() {
-            //桌機畫面大、船慢，礁石疏一點；手機密一點。單位毫秒
-            return window.innerWidth > 480 ? 2000 : 1000;
-        }
-        spawnObstacles(deltaTime) {
-            this.rockTimer += deltaTime;
-            this.flagTimer += deltaTime;
-            if (this.rockTimer >= this.rockInterval()) {
-                this.obstacles.push(new Rock(this));
-                this.rockTimer = 0;
-            }
-            if (this.flagTimer >= this.flagInterval) {
-                this.obstacles.push(new Flag(this));
-                this.flagTimer = 0;
-            }
         }
     }
     const game = new Game(canvas.width, canvas.height);
