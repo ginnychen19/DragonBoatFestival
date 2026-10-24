@@ -46,7 +46,7 @@ window.addEventListener('load', function () {
             this.debugCount = 0;
             this.score = 0;
             this.time = 0;
-            this.maxTime = 60; //因為我後面把單位變成秒了，所以這邊單位要變
+            this.maxTime = 60; //秒
 
             this.gameOver = false;
             this.gamePause = false;
@@ -63,9 +63,8 @@ window.addEventListener('load', function () {
 
         update(deltaTime) {
             if (!game.gamePause) { //按下暫停鍵
-                //時間計數器
-                // var senced = deltaTime / 1000; //不知為何這樣算會有bug
-                this.time += 0.006;
+                //時間計數器：deltaTime 是毫秒，換成秒累加
+                this.time += deltaTime / 1000;
                 //進度條移動
                 progressBar.attr('value', Math.floor(this.time))
                 //分數
@@ -124,7 +123,7 @@ window.addEventListener('load', function () {
         // if(game.openMusic) music_chinese02[0].Play();
         uiStart.addClass("hidden");
         uiPlay.removeClass("hidden");
-        animate(0);
+        requestAnimationFrame(animate);
     });
     /* 音樂監聽 */
     $(btnMusic).on('click', function () {
@@ -153,10 +152,12 @@ window.addEventListener('load', function () {
         }
     });
     /* 動畫渲染 */
-    let lastime = 0;
+    let lastime = null;
+    const MAX_DELTA = 100; //毫秒。分頁切走再切回時 rAF 會停，避免一次補上整段空白時間
     function animate(timeStamp) {
         if (!game.gameOver) {
-            const deltaTime = timeStamp - lastime;
+            if (lastime === null) lastime = timeStamp; //第一幀只校正基準時間，不累加
+            const deltaTime = Math.min(timeStamp - lastime, MAX_DELTA);
             lastime = timeStamp;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             game.update(deltaTime);
