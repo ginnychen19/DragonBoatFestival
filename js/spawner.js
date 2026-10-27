@@ -10,8 +10,9 @@ const MOBILE_ROW_FACTOR = 0.6; //手機船速快，列間距縮短，維持原�
 const MOBILE_MAX_WIDTH = 480;
 const ROW_Y_JITTER = 20;       //同一列的礁石上下錯開一點，不要排成直線
 const PLACE_TRIES = 12;        //礁石找不重疊位置的嘗試次數
-const WARM_UP_SECONDS = 6;     //開場先把生成與流動快轉這麼多秒，河面一開始就有東西；第一列約 1 秒後到船邊
-const WARM_UP_STEP_MS = 16;    //快轉的模擬步長
+const WARM_UP_MAX_SECONDS = 10; //開場快轉的上限秒數（實際由 WARM_UP_SAFE_GAP 決定何時停）
+const WARM_UP_SAFE_GAP = 120;   //快轉停在最下面一列的底部離船還有這麼多 px，第一檔流速下約 1 秒到船邊
+const WARM_UP_STEP_MS = 16;     //快轉的模擬步長
 
 export class Spawner {
     constructor(game) {
@@ -19,6 +20,7 @@ export class Spawner {
         this.progress = 0;                 //距離上一列經過的秒數
         this.gapX = game.width / 2;        //目前通道中心，船一開始在正中間
         this.rows = 0;                     //已生成的列數，用來決定旗子
+        this.centerNextRow = false;        //下一列的通道強制對準畫面中央（開場用）
     }
     rowTime() {
         const base = tierFor(this.game.time).rowTime;
@@ -35,12 +37,18 @@ export class Spawner {
         this.spawnRow();
     }
     /* 開場快轉：只跑生成與流動，不畫、不算玩家、不動遊戲時間。
-       列距與通道限制全部沿用一般規則，所以開場畫面和進行中一樣自然 */
-    warmUp(seconds = WARM_UP_SECONDS) {
+       列距與通道限制全部沿用一般規則，所以開場畫面和進行中一樣自然。
+       停止條件是「最下面一列的底部離船還有 WARM_UP_SAFE_GAP」，不是固定秒數，
+       這樣桌機與手機（列距不同）都剛好填滿畫面又不會壓到船；最先遇到的那列通道對準船 */
+    warmUp() {
         const game = this.game;
-        for (let elapsed = 0; elapsed < seconds * 1000; elapsed += WARM_UP_STEP_MS) {
+        const stopY = game.player.y - WARM_UP_SAFE_GAP;
+        this.centerNextRow = true;
+        for (let elapsed = 0; elapsed < WARM_UP_MAX_SECONDS * 1000; elapsed += WARM_UP_STEP_MS) {
             this.update(WARM_UP_STEP_MS);
             game.obstacles.forEach(obstacle => obstacle.update(WARM_UP_STEP_MS));
+            const lowestBottom = Math.max(...game.obstacles.map(o => o.y + o.height), -Infinity);
+            if (lowestBottom >= stopY) break;
         }
         game.obstacles = game.obstacles.filter(obstacle => !obstacle.markedForDeletion);
     }
@@ -49,9 +57,14 @@ export class Spawner {
         const tier = tierFor(game.time);
         const half = GAP_WIDTH / 2;
 
-        //通道：從上一列的位置偏移，夾在畫面內
-        const shift = (Math.random() * 2 - 1) * this.maxGapShift();
-        this.gapX = Math.min(Math.max(this.gapX + shift, half), game.width - half);
+        //通道：從上一列的位置偏移，夾在畫面內；開場第一列直接對準中央，船一開始就在那裡
+        if (this.centerNextRow) {
+            this.gapX = game.width / 2;
+            this.centerNextRow = false;
+        } else {
+            const shift = (Math.random() * 2 - 1) * this.maxGapShift();
+            this.gapX = Math.min(Math.max(this.gapX + shift, half), game.width - half);
+        }
 
         //礁石：通道以外，彼此不重疊
         const placed = [];
