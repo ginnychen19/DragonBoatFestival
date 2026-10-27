@@ -96,6 +96,7 @@ window.addEventListener('load', function () {
     /* 按下開始遊戲 */
     btnStartGame.on('click', function () {
         game.sound.playBgm(); //點擊屬於使用者互動，瀏覽器允許在這裡開始播放
+        game.spawner.warmUp(); //開場先把河面填起來，不用空等第一列流下來
         uiStart.addClass("hidden");
         uiPlay.removeClass("hidden");
         requestAnimationFrame(animate);
