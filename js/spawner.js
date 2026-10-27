@@ -10,7 +10,7 @@ const MOBILE_ROW_FACTOR = 0.6; //手機船速快，列間距縮短，維持原�
 const MOBILE_MAX_WIDTH = 480;
 const ROW_Y_JITTER = 20;       //同一列的礁石上下錯開一點，不要排成直線
 const PLACE_TRIES = 12;        //礁石找不重疊位置的嘗試次數
-const WARM_UP_SECONDS = 5.2;   //開場先把生成與流動快轉這麼多秒，河面一開始就有東西；第一列約 1.8 秒後到船邊
+const WARM_UP_SECONDS = 6;     //開場先把生成與流動快轉這麼多秒，河面一開始就有東西；第一列約 1 秒後到船邊
 const WARM_UP_STEP_MS = 16;    //快轉的模擬步長
 
 export class Spawner {
