@@ -15,14 +15,21 @@
     <link href="./dragon-boat-festival.ico" rel="shortcut icon" />
     <title>端午龍舟爭霸賽！</title>
     <link href="./css/main.css" rel="stylesheet">
+    <script>
+        /* 畫面縮放：以視窗高度為準。放在 head 內，首次繪製前就算好，不等圖片與 JS 模組載入 */
+        (function () {
+            const apply = () => document.documentElement.style.setProperty("--scale", window.innerHeight / 625);
+            apply();
+            window.addEventListener("resize", apply);
+        })();
+    </script>
     <script src="https://code.jquery.com/jquery-3.6.4.js"
         integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E=" crossorigin="anonymous"></script>
 </head>
 
 <body>
     <div id="game">
-        <Canvas id="CanvasGame">
-        </Canvas>
+        <canvas id="CanvasGame" width="320" height="625"></canvas>
         <div class="gameUI">
             <div id="ui-start" class="">
                 <h1>🐲划龍舟</h1>
@@ -68,7 +75,7 @@
                         <span class="btn-txt">開始遊戲</span>
                     </button>
                     <button class="button type1 music">
-                        <span class="btn-txt">音樂</span>
+                        <span class="btn-txt">音樂：開</span>
                     </button>
                 </section>
             </div>
