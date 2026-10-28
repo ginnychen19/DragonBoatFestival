@@ -1,24 +1,36 @@
-class obstacle {
-    constructor() {
-        this.fps = 20;
-        this.frameInterval = 1000 / this.fps;
-        this.frameTimer = 0;
-        this.markedForDeletion = false;
-        this.speedY = 2; //流速
-    }
-    update(deltaTime, nowTime) {
-        //加速用
-        nowTime = Math.floor(nowTime);
-        if (nowTime > 20) {
-            this.speedY = 3;
-        } else if (nowTime > 40) {
-            this.speedY = 6;
-        }
-        //移動時
-        this.y += this.speedY;
-        //確認是否移出是窗外，移出擦除。
-        if (this.y + this.height > 625 + this.height) this.markedForDeletion = true;
+/* 難度分檔：遊戲進行到第 from 秒以後套用。由高到低排列，取第一個符合的。
+   speed   流速（px/s）
+   rowTime 每列障礙物的間隔（秒）
+   rocks   每列礁石數 */
+export const TIERS = [
+    { from: 40, speed: 360, rowTime: 1.4, rocks: 2 },
+    { from: 20, speed: 180, rowTime: 1.7, rocks: 2 },
+    { from: 0, speed: 120, rowTime: 2.0, rocks: 1 },
+];
+export function tierFor(time) {
+    return TIERS.find(t => time >= t.from);
+}
 
+const ROCK_BASE_SIZE = 70;
+const ROCK_SCALE_MIN = 0.8;
+const ROCK_SCALE_MAX = 1.2;
+export const FLAG_SIZE = 40;
+
+class obstacle {
+    constructor(game, x, y, size) {
+        this.game = game;
+        this.x = x;
+        this.y = y;
+        this.width = size;
+        this.height = size;
+        this.markedForDeletion = false;
+        this.speedY = tierFor(0).speed; //流速（px/s）
+    }
+    update(deltaTime) {
+        this.speedY = tierFor(this.game.time).speed;
+        this.y += this.speedY * deltaTime / 1000;
+        //移出畫面底部就擦除
+        if (this.y > this.game.height) this.markedForDeletion = true;
     }
     draw(context) {
         context.save();//這個很重要喔
@@ -27,12 +39,6 @@ class obstacle {
             context.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, 0, 2 * Math.PI);
             context.fillStyle = 'blue';
             context.fill();
-            // context.strokeRect(
-            //     this.x,
-            //     this.y,
-            //     this.width, //修改碰撞器高寬
-            //     this.height
-            // );
         }
         context.restore();
 
@@ -52,71 +58,19 @@ class obstacle {
 }
 
 export class Rock extends obstacle {
-    constructor(game) {
-        super();
-        this.game = game;
-        this.width = Math.random() * 20 + 60; //石頭的大小(80~60)
-        this.height = this.width;
-        this.x = Math.random() * (this.game.width - this.width);//船的寬this.boatWidth
-        this.y = -(Math.random() * 40 + this.height);//因為要從最上開始，有的推遠、推近生成。(-100~-60)
+    /* 大小在基準尺寸的 0.8–1.2 倍之間隨機 */
+    static randomSize() {
+        return ROCK_BASE_SIZE * (ROCK_SCALE_MIN + Math.random() * (ROCK_SCALE_MAX - ROCK_SCALE_MIN));
+    }
+    constructor(game, x, y, size = Rock.randomSize()) {
+        super(game, x, y, size);
         this.image = document.getElementById("rock01");
     }
-    update(deltaTime) {
-        super.update(deltaTime, this.game.time);//super是再取用上面的funtion
-    }
 }
+
 export class Flag extends obstacle {
-    constructor(game) {
-        super();
-        this.game = game;
-        this.width = 40;
-        this.height = this.width;
+    constructor(game, x, y) {
+        super(game, x, y, FLAG_SIZE);
         this.image = document.getElementById("flag");
-        this.generatePosition();
-    }
-
-    generatePosition() {
-        this.x = Math.random() * (this.game.width - this.width);
-        this.y = -(Math.random() * 40 + this.height);
-    }
-
-    update(deltaTime) {
-        super.update(deltaTime, this.game.time);
-        this.checkCollisionWithPreviousRock();
-    }
-
-    checkCollisionWithPreviousRock() {
-        const obstacles = this.game.obstacles;
-        const index = obstacles.indexOf(this);
-
-        if (index > 0) {
-            const previousRock = obstacles[index - 1];
-
-            if (
-                this.x < previousRock.x + previousRock.width &&
-                this.x + this.width > previousRock.x
-            ) {
-                // Flag 和前一個 Rock 有重疊，需要重新生成位置
-                this.generatePosition();
-            }
-        }
     }
 }
-
-// export class Flag extends obstacle {
-//     constructor(game, rockX, rockWidth) {
-//         super();
-//         this.game = game;
-//         this.width = 40; //旗子的大小(80~60)
-//         this.height = this.width;
-//         this.x = Math.random() * (this.game.width - this.width);//船的寬this.boatWidth
-//         this.y = -(Math.random() * 40 + this.height);//因為要從最上開始，有的推遠、推近生成。(-100~-60)
-//         this.image = document.getElementById("flag");
-
-//     }
-
-
-//     update(deltaTime) {
-//         super.update(deltaTime); //super是再取用上面的funtion
-//     }
-// }

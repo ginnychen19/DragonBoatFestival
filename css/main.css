@@ -152,7 +152,7 @@ body {
 #ui-start {
     padding: 120px 40px;
 
-    background-image: url(../assest/img/uiStartBG_ani.svg);
+    background-image: url(../assets/img/uiStartBG_ani.svg);
     background-size: Contain;
     background-repeat: no-repeat;
     /* background-color: rgba(0, 0, 0, 0.5); */
@@ -269,7 +269,7 @@ input[type="range"]::-webkit-slider-thumb {
     appearance: none;
     margin-top: -28px;
     /* Centers thumb on the track */
-    background-image: url(../assest/img/dragon-boat.png);
+    background-image: url(../assets/img/dragon-boat.png);
     background-size: 50px;
     overflow: visible;
     /* background-color: #ff0000; */
@@ -307,7 +307,7 @@ input[type="range"]::-webkit-slider-thumb {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-image: url(../assest/img/btn-Stop.svg);
+    background-image: url(../assets/img/btn-Stop.svg);
     background-size: 30px;
     background-position: center;
     background-color: var(--Brown01);
@@ -338,13 +338,13 @@ button.play {
 }
 
 button.play.left {
-    background-image: url(../assest/img/btn-L.svg);
+    background-image: url(../assets/img/btn-L.svg);
     background-position: center;
     background-size: 80%;
 }
 
 button.play.right {
-    background-image: url(../assest/img/btn-R.svg);
+    background-image: url(../assets/img/btn-R.svg);
     background-position: center;
     background-size: 80%;
 }

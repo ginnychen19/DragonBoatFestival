@@ -49,14 +49,21 @@ export class Background extends Layer {
         //     layer.update();
         // })
     }
+    /* 漸層內容固定，建一次就好；需要 context 所以在第一次 draw 時建立 */
+    gradientFor(context) {
+        if (!this.gradient) {
+            const gradient = context.createLinearGradient(160, 0, 160, this.game.height);
+            gradient.addColorStop(0, '#266f72');
+            gradient.addColorStop(0.4, '#63AEA8');
+            gradient.addColorStop(0.6, '#63AEA8');
+            gradient.addColorStop(1, '#266f72');
+            this.gradient = gradient;
+        }
+        return this.gradient;
+    }
     draw(context) {
         context.save();
-        const gradient = context.createLinearGradient(160, 0, 160, 625);
-        gradient.addColorStop(0, '#266f72');
-        gradient.addColorStop(0.4, '#63AEA8');
-        gradient.addColorStop(0.6, '#63AEA8');
-        gradient.addColorStop(1, '#266f72');
-        context.fillStyle = gradient;
+        context.fillStyle = this.gradientFor(context);
         context.fillRect(
             0, 0,
             this.game.width, this.game.height

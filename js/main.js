@@ -1,9 +1,8 @@
 import { Player } from './player.js';
 import { InputHandler } from './input.js';
 import { Background } from './background.js';
-import { Rock, Flag } from './obstacle.js';
-// import { UI } from './UI.js';
-// import { BgMusic, UiSound, playerSound } from './music.js';
+import { Spawner } from './spawner.js';
+import { Sound } from './sound.js';
 
 const canvas = document.getElementById("CanvasGame");
 const gameUI = $(".gameUI");
@@ -19,9 +18,7 @@ let btnStartGame = $(".button.start");
 let btnRestartGame = $(".button.reStart");
 let btnPauseGame = $(".btn.PauseGame");
 let btnMusic = $("button.music");
-
-let music_chinese01 = $("#music_chinese01");
-let music_chinese02 = $("#music_chinese02");
+let musicToggle = $("#checkboxInput"); //遊戲中的喇叭開關，勾起來是靜音
 
 window.addEventListener('load', function () {
     canvas.width = 320;
@@ -38,56 +35,51 @@ window.addEventListener('load', function () {
             this.player = new Player(this);
             this.input = new InputHandler(this);
 
-            this.obstacles = []; //障礙物生成
-            this.obstacleTimer = 0;
-            this.obstacleInterval = 1000;
+            this.obstacles = []; //場上的礁石與旗子
+            this.spawner = new Spawner(this); //一列一列生成礁石與旗子
 
             this.debug = false;
             this.debugCount = 0;
             this.score = 0;
             this.time = 0;
-            this.maxTime = 60; //因為我後面把單位變成秒了，所以這邊單位要變
+            this.maxTime = 60; //秒
+            this.shownTime = -1;  //最後一次寫進進度條的秒數
+            this.shownScore = -1; //最後一次寫進畫面的分數，數值有變才碰 DOM
 
             this.gameOver = false;
             this.gamePause = false;
             this.btnPauseGameCount = 0;
-            this.gameBGmusic = false;
 
-            this.openMusic = false;
-            this.btnMusicCount = 1;
-
-            // this.player.currentState = this.player.states[0];
-            // this.player.currentState.enter();
-
+            this.sound = new Sound();
         }
 
         update(deltaTime) {
             if (!game.gamePause) { //按下暫停鍵
-                //時間計數器
-                // var senced = deltaTime / 1000; //不知為何這樣算會有bug
-                this.time += 0.006;
-                //進度條移動
-                progressBar.attr('value', Math.floor(this.time))
-                //分數
-                score.html(this.score);
+                //時間計數器：deltaTime 是毫秒，換成秒累加
+                this.time += deltaTime / 1000;
+                //進度條與分數：每幀都寫 DOM 會觸發不必要的 layout，數值有變才寫
+                const second = Math.floor(this.time);
+                if (second !== this.shownTime) {
+                    this.shownTime = second;
+                    progressBar.attr('value', second);
+                }
+                if (this.score !== this.shownScore) {
+                    this.shownScore = this.score;
+                    score.html(this.score);
+                }
                 //遊戲是否結束判斷
-                if (this.time >= this.maxTime) this.gameOver = true;
+                if (this.time >= this.maxTime) {
+                    this.gameOver = true;
+                    this.sound.play('win');
+                }
                 //遊戲背景
                 this.background.update();
                 this.player.update(this.input.keys, deltaTime);
 
-                // console.log(this.openMusic);
-                // 生成敵人
-                if (this.obstacleTimer > this.obstacleInterval) {
-                    this.addObstacle();
-                    this.obstacleTimer = 0;
-                } else {
-                    this.obstacleTimer += deltaTime;
-                }
-                this.obstacles.forEach(obstacle => {
-                    obstacle.update(deltaTime);
-                    if (obstacle.markedForDeletion) this.obstacles.splice(this.obstacles.indexOf(obstacle), 1);//刪除當前這個障礙物
-                })
+                // 生成障礙物
+                this.spawner.update(deltaTime);
+                this.obstacles.forEach(obstacle => obstacle.update(deltaTime));
+                this.obstacles = this.obstacles.filter(obstacle => !obstacle.markedForDeletion); //移出畫面或被撿走的清掉
             } else {
                 return;
             }
@@ -100,44 +92,22 @@ window.addEventListener('load', function () {
             })
             this.player.draw(context);
         }
-        addObstacle() {
-            if (window.innerWidth > 480) {
-                if (Math.floor(this.time) % 2 === 0) {
-                    this.obstacles.push(new Rock(this));
-                }
-            } else {
-                this.obstacles.push(new Rock(this));
-            }
-
-            if (Math.floor(this.time) % 5 === 0) {//每5秒有一個旗子
-                this.obstacles.push(new Flag(this));
-            }
-        }
     }
     const game = new Game(canvas.width, canvas.height);
-    // if (game.openMusic) music_chinese01.Play();
+    /* 音效開關：開始畫面的按鈕與遊戲中的喇叭共用同一個狀態，任一處切換另一處跟著變 */
+    game.sound.onChange(on => {
+        btnMusic.find('.btn-txt').text(on ? '音樂：開' : '音樂：關');
+        musicToggle.prop('checked', !on);
+    });
+    btnMusic.on('click', () => game.sound.toggle());
+    musicToggle.on('change', function () { game.sound.setEnabled(!this.checked); });
     /* 按下開始遊戲 */
-    $(btnStartGame).on('click', function () {
-        // if (game.openMusic)
-        // game.openMusic = true;
-        // console.log(music_chinese02[0]);
-        // if(game.openMusic) music_chinese02[0].Play();
+    btnStartGame.on('click', function () {
+        game.sound.playBgm(); //點擊屬於使用者互動，瀏覽器允許在這裡開始播放
+        game.spawner.warmUp(); //開場先把河面填起來，不用空等第一列流下來
         uiStart.addClass("hidden");
         uiPlay.removeClass("hidden");
-        animate(0);
-    });
-    /* 音樂監聽 */
-    $(btnMusic).on('click', function () {
-        game.btnMusicCount++;
-        if (game.btnMusicCount % 2 != 0) {
-            game.gamePause = false;
-            $("#music_chinese01").get(0).pause();
-            // $("#music_chinese01").attr("autoplay", "true");
-        } else {
-            game.openMusic = true;
-            $("#music_chinese01").get(0).play();
-            // $("#music_chinese01").attr("autoplay", "false");
-        }
+        requestAnimationFrame(animate);
     });
 
     /* 按下暫停 */
@@ -145,18 +115,20 @@ window.addEventListener('load', function () {
         game.btnPauseGameCount++;
         if (game.btnPauseGameCount % 2 != 0) {
             console.log()
-            btnPauseGame.css('background-image', "url('https://gotoo.co/demo/elizabeth/04_DragonBoatFestival/assest/img/btn-R.svg')")
+            btnPauseGame.css('background-image', "url('./assets/img/btn-R.svg')")
             game.gamePause = true;
         } else {
-            btnPauseGame.css('background-image', "url('https://gotoo.co/demo/elizabeth/04_DragonBoatFestival/assest/img/btn-Stop.svg')")
+            btnPauseGame.css('background-image', "url('./assets/img/btn-Stop.svg')")
             game.gamePause = false;
         }
     });
     /* 動畫渲染 */
-    let lastime = 0;
+    let lastime = null;
+    const MAX_DELTA = 100; //毫秒。分頁切走再切回時 rAF 會停，避免一次補上整段空白時間
     function animate(timeStamp) {
         if (!game.gameOver) {
-            const deltaTime = timeStamp - lastime;
+            if (lastime === null) lastime = timeStamp; //第一幀只校正基準時間，不累加
+            const deltaTime = Math.min(timeStamp - lastime, MAX_DELTA);
             lastime = timeStamp;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             game.update(deltaTime);

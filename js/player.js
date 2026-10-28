@@ -1,7 +1,11 @@
 // import { Sitting, Running, Jumping, Falling, Death } from './playerStates.js';
 import { Rock, Flag } from './obstacle.js';
-// import { playerSound, EnemySound } from './music.js';
 const canvas = document.getElementById("CanvasGame");
+/* 手感參數，單位皆為「每秒」，不受螢幕更新率影響。數值以舊版在 60fps 的表現為基準換算 */
+const TUNING = {
+    desktop: { maxSpeed: 60, rotationSpeed: 60, maxRotate: 30 },
+    mobile: { maxSpeed: 120, rotationSpeed: 120, maxRotate: 45 },
+};
 //這邊的this = Player這個class ，也就是操控角色。
 export class Player {
     constructor(game) {
@@ -12,9 +16,8 @@ export class Player {
         this.boatHeight = 50;
         this.x = (this.width - this.boatWidth) / 2;
         this.y = (this.height - this.boatHeight) - 60; //從底下高60
-        this.rotate = 0
-        this.rotationSpeed = 1;
-        this.maxRotate = 30;
+        this.rotate = 0; //目前船身角度（度）
+        this.applyTuning();
         this.image = document.getElementById("PlayerBoat");
 
         this.frameX = 0; //這邊是用來畫精靈圖。
@@ -25,8 +28,7 @@ export class Player {
         this.frameInterval = 1000 / this.fps;
         this.frameTimer = 0; //以上三個用來計數動畫
 
-        this.speed = 0;
-        this.maxSpeed = 1;//控制移動速度
+        this.speed = 0; //目前水平速度（px/s）
         // this.states = [//這邊會放playerStates.js的各種狀態。
         //     new Sitting(this),
         //     new Running(this),
@@ -42,30 +44,28 @@ export class Player {
     this.btnLeft = $('button.left');
         this.btnRight = $('button.right');
     }
+    applyTuning() {
+        const t = window.innerWidth < 480 ? TUNING.mobile : TUNING.desktop;
+        this.maxSpeed = t.maxSpeed;           // px/s
+        this.rotationSpeed = t.rotationSpeed; // 度/s
+        this.maxRotate = t.maxRotate;         // 度
+    }
     update(input, deltaTime) {
+        const dt = deltaTime / 1000; //秒
         this.checkCollision();
-        // this.currentState.handleInput(input);//在每次更新前先檢查狀態
-        this.x += this.speed;
-        if (window.innerWidth < 480) {
-            this.maxSpeed = 2;
-            this.rotationSpeed = 2;
-            this.maxRotate = 45;
-        }
-        if (this.rotate != 0) {
-            if (this.rotate < 0) {
-                this.rotate = this.rotate + this.rotationSpeed / 2;
-            } else if (this.rotate > 0) {
-                this.rotate = this.rotate - this.rotationSpeed / 2;
-            }
+        this.applyTuning();
+        this.x += this.speed * dt;
+        /* 沒按鍵時船身慢慢回正，回正速度是轉向速度的一半 */
+        if (this.rotate !== 0) {
+            const settle = Math.min(Math.abs(this.rotate), this.rotationSpeed / 2 * dt);
+            this.rotate -= Math.sign(this.rotate) * settle;
         }
         if (input.includes('arrowright')) {
-            this.speed = this.maxSpeed; // 向右旋转
-            if(this.rotate< this.maxRotate ) this.rotate += this.rotationSpeed;//最多轉幾度
-        }
-        else if (input.includes('a')) {
+            this.speed = this.maxSpeed;
+            this.rotate = Math.min(this.rotate + this.rotationSpeed * dt, this.maxRotate);
+        } else if (input.includes('a')) {
             this.speed = -this.maxSpeed;
-            if(this.rotate > -this.maxRotate) this.rotate -= this.rotationSpeed; // 向左旋转
-
+            this.rotate = Math.max(this.rotate - this.rotationSpeed * dt, -this.maxRotate);
         } else { this.speed = 0; }
         /* 牆壁判斷 */
         if (this.x < 0) this.x = 0;
@@ -123,84 +123,40 @@ export class Player {
         // this.game.speed = speed; //要加speed是因為這樣我們才可以在playerStates.js中，設定當我們是哪個動作時，畫面移動的速度要是0或正常。
         // this.currentState.enter();
     }
+    /* 船是會旋轉的矩形，障礙物是圓。把圓心轉進「以船中心為原點、跟著船旋轉」的局部座標，
+       矩形就變回不旋轉的 (-w/2, -h/2, w, h)，再用最近點到圓心的距離判定。
+       軸心必須是船的中心，和 draw() 的 translate/rotate 一致，碰撞框才會跟畫面對齊。 */
     checkCollision() {
+        const halfW = this.boatWidth / 2;
+        const halfH = this.boatHeight / 2;
+        const centerX = this.x + halfW;
+        const centerY = this.y + halfH;
+        const rad = -this.rotate * Math.PI / 180; //反向旋轉，把世界座標轉進船的局部座標
+        const cos = Math.cos(rad);
+        const sin = Math.sin(rad);
+
         this.game.obstacles.forEach(obstacle => {
-            // 矩形的位置和尺寸
-            const rectX = this.x;
-            const rectY = this.y;
-            const rectWidth = this.boatWidth;
-            const rectHeight = this.boatHeight;
-            // 圓形的位置和半徑
-            const circleX = obstacle.x + obstacle.width / 2;
-            const circleY = obstacle.y + obstacle.height / 2;
-            const circleRadius = obstacle.width / 2;
-            // 將畫布逆時針旋轉矩形的旋轉角度
-            const rotatedRectX = Math.cos(-this.rotate * Math.PI / 180) * (rectX - this.x) - Math.sin(-this.rotate * Math.PI / 180) * (rectY - this.y) + this.x;
-            const rotatedRectY = Math.sin(-this.rotate * Math.PI / 180) * (rectX - this.x) + Math.cos(-this.rotate * Math.PI / 180) * (rectY - this.y) + this.y;
-            // 將畫布逆時針旋轉圓形的位置
-            const rotatedCircleX = Math.cos(-this.rotate * Math.PI / 180) * (circleX - this.x) - Math.sin(-this.rotate * Math.PI / 180) * (circleY - this.y) + this.x;
-            const rotatedCircleY = Math.sin(-this.rotate * Math.PI / 180) * (circleX - this.x) + Math.cos(-this.rotate * Math.PI / 180) * (circleY - this.y) + this.y;
-            // 使用旋轉後的矩形和圓形位置進行碰撞檢測
-            const closestX = Math.max(rotatedRectX, Math.min(rotatedCircleX, rotatedRectX + rectWidth));
-            const closestY = Math.max(rotatedRectY, Math.min(rotatedCircleY, rotatedRectY + rectHeight));
-            // 計算最近點和圓心的距離
-            const distanceX = rotatedCircleX - closestX;
-            const distanceY = rotatedCircleY - closestY;
-            const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
-            // 如果距離小於等於圓的半徑，表示碰撞發生
-            if (distance <= circleRadius) {
-                // 在這裡處理碰撞的邏輯
-                
-                if (obstacle instanceof Flag) {
-                    obstacle.markedForDeletion = true;
-                    this.game.score++;
-                    // this.EnemySound.Playmusic(0);
-                } else if (obstacle instanceof Rock) {
-                    this.game.gameOver = true;
-                    $('body').addClass('shake');
-                        // this.setState(4, 0);
-                        // setTimeout(() => {
-                        //     this.game.gameOver = true;
-                        // }, 700);//因為死亡動畫撥一次完大概是700毫秒
-                    
-                }
-                // console.log('Collision detected!');
+            const radius = obstacle.width / 2;
+            const dx = obstacle.x + radius - centerX;
+            const dy = obstacle.y + obstacle.height / 2 - centerY;
+            const localX = cos * dx - sin * dy;
+            const localY = sin * dx + cos * dy;
+            //矩形上離圓心最近的點
+            const closestX = Math.max(-halfW, Math.min(localX, halfW));
+            const closestY = Math.max(-halfH, Math.min(localY, halfH));
+            const distX = localX - closestX;
+            const distY = localY - closestY;
+            if (distX * distX + distY * distY > radius * radius) return; //沒碰到
+
+            if (obstacle instanceof Flag) {
+                obstacle.markedForDeletion = true;
+                this.game.score++;
+                this.game.sound.play('collect');
+            } else if (obstacle instanceof Rock) {
+                this.game.gameOver = true;
+                this.game.sound.play('fail');
+                $('body').addClass('shake');
             }
         });
     }
 }
-
-
-
-    // checkCollision() {
-    //     this.game.obstacles.forEach(obstacle => {
-    //         // 矩形的位置和尺寸
-    //         const rectX = this.x;
-    //         const rectY = this.y;
-    //         const rectWidth = this.boatWidth;
-    //         const rectHeight = this.boatHeight;
-    //         // 圓形的位置和半徑
-    //         const circleX = obstacle.x + obstacle.width / 2;
-    //         const circleY = obstacle.y + obstacle.height / 2;
-    //         const circleRadius = obstacle.width / 2;
-    //         // 將畫布逆時針旋轉矩形的旋轉角度
-    //         const rotatedRectX = Math.cos(-this.rotate * Math.PI / 180) * (rectX - this.x) - Math.sin(-this.rotate * Math.PI / 180) * (rectY - this.y) + this.x;
-    //         const rotatedRectY = Math.sin(-this.rotate * Math.PI / 180) * (rectX - this.x) + Math.cos(-this.rotate * Math.PI / 180) * (rectY - this.y) + this.y;
-    //         // 將畫布逆時針旋轉圓形的位置
-    //         const rotatedCircleX = Math.cos(-this.rotate * Math.PI / 180) * (circleX - this.x) - Math.sin(-this.rotate * Math.PI / 180) * (circleY - this.y) + this.x;
-    //         const rotatedCircleY = Math.sin(-this.rotate * Math.PI / 180) * (circleX - this.x) + Math.cos(-this.rotate * Math.PI / 180) * (circleY - this.y) + this.y;
-    //         // 使用旋轉後的矩形和圓形位置進行碰撞檢測
-    //         const closestX = Math.max(rotatedRectX, Math.min(rotatedCircleX, rotatedRectX + rectWidth));
-    //         const closestY = Math.max(rotatedRectY, Math.min(rotatedCircleY, rotatedRectY + rectHeight));
-    //         // 計算最近點和圓心的距離
-    //         const distanceX = rotatedCircleX - closestX;
-    //         const distanceY = rotatedCircleY - closestY;
-    //         const distance = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
-    //         // 如果距離小於等於圓的半徑，表示碰撞發生
-    //         if (distance <= circleRadius) {
-    //             // 在這裡處理碰撞的邏輯
-    //             this.game.gameOver = true;
-                
-    //         }
-    //     });
-    // }

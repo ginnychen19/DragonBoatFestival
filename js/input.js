@@ -1,3 +1,5 @@
+/* 遊戲真正會用到的按鍵，其他按鍵（F5、F12、Ctrl+R…）不攔截，交還給瀏覽器 */
+const GAME_KEYS = new Set(['a', 'arrowright', ' ', 'q']);
 
 export class InputHandler {
     constructor(game) {
@@ -10,10 +12,18 @@ export class InputHandler {
         //因為會預先執行，所以把監聽放在這
         window.addEventListener('keydown', this.handleKeyDown.bind(this));
         window.addEventListener('keyup', this.handleKeyUp.bind(this));
+        //切到別的視窗時收不到 keyup，回來船會卡在持續移動，所以失焦時全部放開
+        window.addEventListener('blur', this.releaseAll.bind(this));
         this.btnPlay.on('touchstart mousedown', this.BtnMousedown.bind(this));
-        this.btnPlay.on('touchend mouseup', this.BtnMouseup.bind(this));
+        this.btnPlay.on('touchend touchcancel mouseup', this.BtnMouseup.bind(this));
+    }
+    releaseAll() {
+        this.keys = [];
+        this.btnLeft.removeClass("playhover");
+        this.btnRight.removeClass("playhover");
     }
     handleKeyDown(e) {
+        if (!GAME_KEYS.has(e.key.toLowerCase())) return;
         e.preventDefault();
 
         if (e.key.toLowerCase() === 'a') this.btnLeft.addClass("playhover");
@@ -30,10 +40,10 @@ export class InputHandler {
             this.game.btnPauseGameCount++;
             if (this.game.btnPauseGameCount % 2 != 0) {
                 this.game.gamePause = true;
-                this.btnStop.css('background-image', "url('https://gotoo.co/demo/elizabeth/04_DragonBoatFestival/assest/img/btn-R.svg')")
+                this.btnStop.css('background-image', "url('./assets/img/btn-R.svg')")
             } else {
                 this.game.gamePause = false;
-                this.btnStop.css('background-image', "url('https://gotoo.co/demo/elizabeth/04_DragonBoatFestival/assest/img/btn-Stop.svg')")
+                this.btnStop.css('background-image', "url('./assets/img/btn-Stop.svg')")
             }
         } else if (e.key.toLowerCase() === "q") {
             this.game.debugCount++;
@@ -46,6 +56,7 @@ export class InputHandler {
     }
 
     handleKeyUp(e) {
+        if (!GAME_KEYS.has(e.key.toLowerCase())) return;
         e.preventDefault();
         if (
             e.key.toLowerCase() === 'a' ||
