@@ -41,8 +41,6 @@ export class Player {
 
         // this.playerSound = new playerSound(this.game);//玩家動作音樂
         // this.EnemySound = new EnemySound(this.game);//敵人碰撞音樂
-    this.btnLeft = $('button.left');
-        this.btnRight = $('button.right');
     }
     applyTuning() {
         const t = window.innerWidth < 480 ? TUNING.mobile : TUNING.desktop;
@@ -155,7 +153,7 @@ export class Player {
             } else if (obstacle instanceof Rock) {
                 this.game.gameOver = true;
                 this.game.sound.play('fail');
-                $('body').addClass('shake');
+                document.body.classList.add('shake');
             }
         });
     }

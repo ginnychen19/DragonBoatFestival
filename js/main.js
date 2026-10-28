@@ -6,18 +6,18 @@ import { Sound } from './sound.js';
 
 const canvas = document.getElementById("CanvasGame");
 const ctx = canvas.getContext('2d');
-let uiStart = $("#ui-start");
-let uiPlay = $("#ui-play");
-let uiGameOver = $("#ui-GameOver");
-let progressBar = $('#ProgressBar');
-let score = $('span.score');
-let evaluate = $('#evaluate');
+const uiStart = document.getElementById('ui-start');
+const uiPlay = document.getElementById('ui-play');
+const uiGameOver = document.getElementById('ui-GameOver');
+const progressBar = document.getElementById('ProgressBar');
+const scoreEls = document.querySelectorAll('span.score'); //遊戲中與結算畫面各一個，一起更新
+const evaluate = document.getElementById('evaluate');
 
-let btnStartGame = $(".button.start");
-let btnRestartGame = $(".button.reStart");
-let btnPauseGame = $(".btn.PauseGame");
-let btnMusic = $("button.music");
-let musicToggle = $("#checkboxInput"); //遊戲中的喇叭開關，勾起來是靜音
+const btnStartGame = document.querySelector('.button.start');
+const btnRestartGame = document.querySelector('.button.reStart');
+const btnPauseGame = document.querySelector('.btn.PauseGame');
+const btnMusic = document.querySelector('button.music');
+const musicToggle = document.getElementById('checkboxInput'); //遊戲中的喇叭開關，勾起來是靜音
 
 window.addEventListener('load', function () {
     class Game {
@@ -43,9 +43,13 @@ window.addEventListener('load', function () {
 
             this.gameOver = false;
             this.gamePause = false;
-            this.btnPauseGameCount = 0;
 
             this.sound = new Sound();
+        }
+        /* 暫停切換：空白鍵與畫面上的暫停鈕都走這裡，按鈕圖示跟著狀態換 */
+        togglePause() {
+            this.gamePause = !this.gamePause;
+            btnPauseGame.style.backgroundImage = `url('./assets/img/${this.gamePause ? 'btn-R' : 'btn-Stop'}.svg')`;
         }
 
         update(deltaTime) {
@@ -56,11 +60,11 @@ window.addEventListener('load', function () {
                 const second = Math.floor(this.time);
                 if (second !== this.shownTime) {
                     this.shownTime = second;
-                    progressBar.attr('value', second);
+                    progressBar.value = second;
                 }
                 if (this.score !== this.shownScore) {
                     this.shownScore = this.score;
-                    score.html(this.score);
+                    scoreEls.forEach(el => { el.textContent = this.score; });
                 }
                 //遊戲是否結束判斷
                 if (this.time >= this.maxTime) {
@@ -91,32 +95,22 @@ window.addEventListener('load', function () {
     const game = new Game(canvas.width, canvas.height);
     /* 音效開關：開始畫面的按鈕與遊戲中的喇叭共用同一個狀態，任一處切換另一處跟著變 */
     game.sound.onChange(on => {
-        btnMusic.find('.btn-txt').text(on ? '音樂：開' : '音樂：關');
-        musicToggle.prop('checked', !on);
+        btnMusic.querySelector('.btn-txt').textContent = on ? '音樂：開' : '音樂：關';
+        musicToggle.checked = !on;
     });
-    btnMusic.on('click', () => game.sound.toggle());
-    musicToggle.on('change', function () { game.sound.setEnabled(!this.checked); });
+    btnMusic.addEventListener('click', () => game.sound.toggle());
+    musicToggle.addEventListener('change', function () { game.sound.setEnabled(!this.checked); });
     /* 按下開始遊戲 */
-    btnStartGame.on('click', function () {
+    btnStartGame.addEventListener('click', function () {
         game.sound.playBgm(); //點擊屬於使用者互動，瀏覽器允許在這裡開始播放
         game.spawner.warmUp(); //開場先把河面填起來，不用空等第一列流下來
-        uiStart.addClass("hidden");
-        uiPlay.removeClass("hidden");
+        uiStart.classList.add('hidden');
+        uiPlay.classList.remove('hidden');
         requestAnimationFrame(animate);
     });
 
     /* 按下暫停 */
-    $(btnPauseGame).on('click', function () {
-        game.btnPauseGameCount++;
-        if (game.btnPauseGameCount % 2 != 0) {
-            console.log()
-            btnPauseGame.css('background-image', "url('./assets/img/btn-R.svg')")
-            game.gamePause = true;
-        } else {
-            btnPauseGame.css('background-image', "url('./assets/img/btn-Stop.svg')")
-            game.gamePause = false;
-        }
-    });
+    btnPauseGame.addEventListener('click', () => game.togglePause());
     /* 動畫渲染 */
     let lastime = null;
     const MAX_DELTA = 100; //毫秒。分頁切走再切回時 rAF 會停，避免一次補上整段空白時間
@@ -132,21 +126,20 @@ window.addEventListener('load', function () {
         }
         /* 遊戲結束介面 */
         if (game.gameOver) {
-            uiPlay.addClass("hidden");
-            uiGameOver.removeClass("hidden");
+            uiPlay.classList.add('hidden');
+            uiGameOver.classList.remove('hidden');
 
             if (game.score <= 3) {
-                evaluate.html("恩🙂🙂🙂 <br>到底是誰在雷阿?");
+                evaluate.innerHTML = "恩🙂🙂🙂 <br>到底是誰在雷阿?";
             } else if (game.score <= 6) {
-                evaluate.html("👏加油👏<br>努力成為搶旗好手吧🚩");
+                evaluate.innerHTML = "👏加油👏<br>努力成為搶旗好手吧🚩";
             } else {
-                evaluate.html("💗天啊😍💗 <br> 你的走位太靈活了🚣");
+                evaluate.innerHTML = "💗天啊😍💗 <br> 你的走位太靈活了🚣";
             }
         }
     }
     /* 按下重新開始 */
-    $(btnRestartGame).on('click', function () {
+    btnRestartGame.addEventListener('click', function () {
         location.reload(); // 重新載入視窗
-    })
+    });
 });
-
