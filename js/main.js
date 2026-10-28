@@ -43,6 +43,8 @@ window.addEventListener('load', function () {
             this.score = 0;
             this.time = 0;
             this.maxTime = 60; //秒
+            this.shownTime = -1;  //最後一次寫進進度條的秒數
+            this.shownScore = -1; //最後一次寫進畫面的分數，數值有變才碰 DOM
 
             this.gameOver = false;
             this.gamePause = false;
@@ -55,10 +57,16 @@ window.addEventListener('load', function () {
             if (!game.gamePause) { //按下暫停鍵
                 //時間計數器：deltaTime 是毫秒，換成秒累加
                 this.time += deltaTime / 1000;
-                //進度條移動
-                progressBar.attr('value', Math.floor(this.time))
-                //分數
-                score.html(this.score);
+                //進度條與分數：每幀都寫 DOM 會觸發不必要的 layout，數值有變才寫
+                const second = Math.floor(this.time);
+                if (second !== this.shownTime) {
+                    this.shownTime = second;
+                    progressBar.attr('value', second);
+                }
+                if (this.score !== this.shownScore) {
+                    this.shownScore = this.score;
+                    score.html(this.score);
+                }
                 //遊戲是否結束判斷
                 if (this.time >= this.maxTime) {
                     this.gameOver = true;
