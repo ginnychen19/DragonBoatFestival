@@ -1,11 +1,10 @@
 /* 難度分檔：遊戲進行到第 from 秒以後套用。由高到低排列，取第一個符合的。
-   speed   流速（px/s）
-   rowTime 每列障礙物的間隔（秒）
-   rocks   每列礁石數 */
+   speed      流速（px/s）
+   spawnEvery 河流每捲動多少 px 生一顆礁石；用距離不用時間，流速變快畫面密度不會變稀 */
 export const TIERS = [
-    { from: 40, speed: 360, rowTime: 1.4, rocks: 2 },
-    { from: 20, speed: 180, rowTime: 1.7, rocks: 2 },
-    { from: 0, speed: 120, rowTime: 2.0, rocks: 1 },
+    { from: 40, speed: 360, spawnEvery: 150 },
+    { from: 20, speed: 180, spawnEvery: 170 },
+    { from: 0, speed: 120, spawnEvery: 200 },
 ];
 export function tierFor(time) {
     return TIERS.find(t => time >= t.from);
