@@ -5,101 +5,66 @@ export class InputHandler {
     constructor(game) {
         this.game = game;
         this.keys = [];
-        this.btnPlay = $('button.play');
-        this.btnLeft = $('button.left');
-        this.btnRight = $('button.right');
-        this.btnStop = $('button.PauseGame');
+        this.btnLeft = document.querySelector('button.left');
+        this.btnRight = document.querySelector('button.right');
         //因為會預先執行，所以把監聽放在這
         window.addEventListener('keydown', this.handleKeyDown.bind(this));
         window.addEventListener('keyup', this.handleKeyUp.bind(this));
         //切到別的視窗時收不到 keyup，回來船會卡在持續移動，所以失焦時全部放開
         window.addEventListener('blur', this.releaseAll.bind(this));
-        this.btnPlay.on('touchstart mousedown', this.BtnMousedown.bind(this));
-        this.btnPlay.on('touchend touchcancel mouseup', this.BtnMouseup.bind(this));
+        //螢幕按鈕：按下對應的鍵寫在按鈕的 data-key，觸控與滑鼠共用同一套處理
+        for (const btn of [this.btnLeft, this.btnRight]) {
+            for (const type of ['touchstart', 'mousedown']) btn.addEventListener(type, this.BtnMousedown.bind(this));
+            for (const type of ['touchend', 'touchcancel', 'mouseup']) btn.addEventListener(type, this.BtnMouseup.bind(this));
+        }
     }
     releaseAll() {
         this.keys = [];
-        this.btnLeft.removeClass("playhover");
-        this.btnRight.removeClass("playhover");
+        this.btnLeft.classList.remove('playhover');
+        this.btnRight.classList.remove('playhover');
+    }
+    pressKey(key) {
+        if (!this.keys.includes(key)) this.keys.push(key);
+    }
+    releaseKey(key) {
+        const index = this.keys.indexOf(key);
+        if (index !== -1) this.keys.splice(index, 1);
     }
     handleKeyDown(e) {
-        if (!GAME_KEYS.has(e.key.toLowerCase())) return;
+        const key = e.key.toLowerCase();
+        if (!GAME_KEYS.has(key)) return;
         e.preventDefault();
 
-        if (e.key.toLowerCase() === 'a') this.btnLeft.addClass("playhover");
-        if (e.key === 'ArrowRight') this.btnRight.addClass("playhover");
-        
-        if (
-            e.key.toLowerCase() === 'a' ||
-            e.key === 'ArrowRight'
-        ) {
-            if (!this.keys.includes(e.key.toLowerCase())) {
-                this.keys.push(e.key.toLowerCase());
-            }
-        } else if (e.key === " ") {
-            this.game.btnPauseGameCount++;
-            if (this.game.btnPauseGameCount % 2 != 0) {
-                this.game.gamePause = true;
-                this.btnStop.css('background-image', "url('./assets/img/btn-R.svg')")
-            } else {
-                this.game.gamePause = false;
-                this.btnStop.css('background-image', "url('./assets/img/btn-Stop.svg')")
-            }
-        } else if (e.key.toLowerCase() === "q") {
+        if (key === 'a') this.btnLeft.classList.add('playhover');
+        if (key === 'arrowright') this.btnRight.classList.add('playhover');
+
+        if (key === 'a' || key === 'arrowright') {
+            this.pressKey(key);
+        } else if (key === ' ') {
+            this.game.togglePause();
+        } else if (key === 'q') {
             this.game.debugCount++;
-            if (this.game.debugCount % 2 != 0) {
-                this.game.debug = true;
-            } else {
-                this.game.debug = false;
-            }
+            this.game.debug = this.game.debugCount % 2 !== 0;
         }
     }
-
     handleKeyUp(e) {
-        if (!GAME_KEYS.has(e.key.toLowerCase())) return;
+        const key = e.key.toLowerCase();
+        if (!GAME_KEYS.has(key)) return;
         e.preventDefault();
-        if (
-            e.key.toLowerCase() === 'a' ||
-            e.key === 'ArrowRight'
-        ) {
-            const index = this.keys.indexOf(e.key.toLowerCase());
-            if (index !== -1) {
-                this.keys.splice(index, 1);
-            }
-        }
-        if (e.key.toLowerCase() === 'a') this.btnLeft.removeClass("playhover");
-        if (e.key === 'ArrowRight') this.btnRight.removeClass("playhover");
+        if (key === 'a' || key === 'arrowright') this.releaseKey(key);
+        if (key === 'a') this.btnLeft.classList.remove('playhover');
+        if (key === 'arrowright') this.btnRight.classList.remove('playhover');
     }
     BtnMousedown(e) {
-        e.preventDefault();
-        /* 轉換成純文字 */
-        let btnKey = $(e.target).attr('class').replace(/\s/g, '').replace('play', '')
-        $(e.target).addClass("playhover");
-        if (
-            btnKey.includes('left') ||
-            btnKey.includes('right')
-        ) {
-            if (btnKey === 'left') btnKey = 'a';
-            if (btnKey === 'right') btnKey = 'arrowright';
-            this.keys.push(btnKey);
-            // console.log(this.keys);
-        }
+        e.preventDefault(); //touchstart 攔下後不會再補發 mousedown，一次觸控只算一次
+        const btn = e.currentTarget;
+        btn.classList.add('playhover');
+        this.pressKey(btn.dataset.key);
     }
-
     BtnMouseup(e) {
         e.preventDefault();
-        $(e.target).removeClass("playhover");
-        let btnKey = $(e.target).attr('class').replace(/\s/g, '').replace('play', '');
-        if (
-            btnKey.includes('left') ||
-            btnKey.includes('right')
-        ) {
-            if (btnKey === 'left') btnKey = 'a';
-            if (btnKey === 'right') btnKey = 'arrowright';
-            const index = this.keys.indexOf(btnKey);
-            if (index !== -1) {
-                this.keys.splice(index, 1);
-            }
-        }
+        const btn = e.currentTarget;
+        btn.classList.remove('playhover');
+        this.releaseKey(btn.dataset.key);
     }
 }
