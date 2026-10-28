@@ -87,6 +87,7 @@ body {
 .btn-txt {
     z-index: 1;
     font-weight: 800;
+    white-space: nowrap;
 }
 
 .type1::after {
@@ -119,6 +120,8 @@ body {
 
 #game {
     position: relative;
+    width: 320px;
+    height: 625px;
 }
 
 .gameUI {
@@ -126,6 +129,7 @@ body {
     position: absolute;
     top: 0;
     left: 0px;
+    transform: scale(var(--scale, 1));
 
     width: 320px;
     height: 625px;
@@ -208,11 +212,11 @@ table>tbody>tr:last-child>td:last-child {
 
 section>button.start {
     margin: 0 10px 0 0;
-    flex: 3;
+    flex: 1;
 }
 
 section>button.music {
-    flex: 1;
+    flex: 0 0 auto; /* 依文字寬度，「音樂：開／關」不換行 */
 }
 
 /* 第二個介面 */
@@ -423,6 +427,7 @@ button.play.right {
 
 /* 遊戲相關設定*/
 #CanvasGame {
+    transform: scale(var(--scale, 1));
     display: flex;
     flex-direction: column;
     justify-content: center;

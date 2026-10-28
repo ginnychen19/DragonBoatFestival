@@ -5,7 +5,6 @@ import { Spawner } from './spawner.js';
 import { Sound } from './sound.js';
 
 const canvas = document.getElementById("CanvasGame");
-const gameUI = $(".gameUI");
 const ctx = canvas.getContext('2d');
 let uiStart = $("#ui-start");
 let uiPlay = $("#ui-play");
@@ -21,10 +20,6 @@ let btnMusic = $("button.music");
 let musicToggle = $("#checkboxInput"); //遊戲中的喇叭開關，勾起來是靜音
 
 window.addEventListener('load', function () {
-    canvas.width = 320;
-    canvas.height = 625;
-    calculateCanvasSize();//計算canvas縮放
-
     class Game {
         constructor(width, height) {
             this.width = width;
@@ -155,20 +150,3 @@ window.addEventListener('load', function () {
     })
 });
 
-function calculateCanvasSize() {
-    let windowHeight = window.innerHeight;
-    let targetHeight = windowHeight;
-    let targetWidth = targetHeight / 1.875;
-
-    // 计算缩放比例
-    let scaleX = targetWidth / 320;
-    let scaleY = targetHeight / 625;
-
-    // 应用缩放变换
-    canvas.style.transform = 'scale(' + scaleX + ', ' + scaleY + ')';
-    gameUI.attr("style", `transform:scale(${scaleX},${scaleY});`)
-}
-
-$(window).on('resize', function () {
-    calculateCanvasSize();
-});
